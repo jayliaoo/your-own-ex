@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: your-own-ex
+  datasource:
+    url: jdbc:mysql://localhost:3306/exchange
+    username: dba
+    password: 1234
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  jackson:
+    defaultPropertyInclusion: NON_NULL
+server:
+  port: 8089
