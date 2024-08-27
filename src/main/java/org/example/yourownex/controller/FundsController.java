@@ -1,12 +1,12 @@
 package org.example.yourownex.controller;
 
-import jakarta.transaction.Transactional;
+import org.example.yourownex.dao.AccountDao;
+import org.example.yourownex.dao.StatementDao;
 import org.example.yourownex.dto.DepositRequest;
 import org.example.yourownex.dto.Result;
 import org.example.yourownex.entity.Account;
 import org.example.yourownex.entity.Statement;
-import org.example.yourownex.repository.AccountRepository;
-import org.example.yourownex.repository.StatementRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,25 +15,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/funds")
 public class FundsController {
-    private final AccountRepository repository;
-    private final StatementRepository statementRepository;
+    private final AccountDao accountDao;
+    private final StatementDao statementDao;
 
-    public FundsController(AccountRepository repository, StatementRepository statementRepository) {
-        this.repository = repository;
-        this.statementRepository = statementRepository;
+    public FundsController(
+            AccountDao accountDao,
+            StatementDao statementDao
+    ) {
+        this.accountDao = accountDao;
+        this.statementDao = statementDao;
     }
 
     @PutMapping("/deposit")
     @Transactional
     public Result<Void> deposit(@RequestBody DepositRequest request) {
         Long userId = SignInInterceptor.getUserId();
-        Account account = repository.findByUserIdAndCurrency(userId, "USD");
-        statementRepository.save(new Statement().setAccountId(account.getId())
-                .setAmount(request.getAmount())
-                .setType("DEPOSIT"));
+        Account account = accountDao.findByUserIdAndCurrency(userId, "USD");
+        Statement statement = new Statement();
+        statement.setAccountId(account.getId());
+        statement.setAmount(request.getAmount());
+        statement.setType("DEPOSIT");
+        statementDao.save(statement);
         account.setTotal(account.getTotal().add(request.getAmount()));
         account.setAvailable(account.getAvailable().add(request.getAmount()));
-        repository.save(account);
+        accountDao.save(account);
         return Result.success();
     }
 
