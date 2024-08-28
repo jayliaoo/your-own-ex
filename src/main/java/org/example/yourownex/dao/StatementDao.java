@@ -8,10 +8,10 @@ import static org.example.yourownex.jooq.tables.Statement.STATEMENT;
 
 
 @Service
-public class StatementService {
+public class StatementDao {
     private final DSLContext dslContext;
 
-    public StatementService(DSLContext dslContext) {
+    public StatementDao(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

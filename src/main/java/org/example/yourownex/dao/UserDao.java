@@ -8,10 +8,10 @@ import static org.example.yourownex.jooq.tables.User.USER;
 
 
 @Service
-public class UserService {
+public class UserDao {
     private final DSLContext dslContext;
 
-    public UserService(DSLContext dslContext) {
+    public UserDao(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
