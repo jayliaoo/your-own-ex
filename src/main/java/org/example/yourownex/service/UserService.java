@@ -9,13 +9,11 @@ import org.springframework.transaction.annotation.*;
 @Service
 public class UserService {
     private final MacService macService;
-    private final JWTService jwtService;
     private final UserDao userDao;
     private final AccountDao accountDao;
 
-    public UserService(MacService macService, JWTService jwtService, UserDao userDao, AccountDao accountDao) {
+    public UserService(MacService macService, UserDao userDao, AccountDao accountDao) {
         this.macService = macService;
-        this.jwtService = jwtService;
         this.userDao = userDao;
         this.accountDao = accountDao;
     }
@@ -32,12 +30,12 @@ public class UserService {
         return userId;
     }
 
-    public String signin(SigninRequest request) {
+    public Long signin(SigninRequest request) {
         UserRecord user = userDao.findByEmailAndPassword(request.getEmail(),
                 macService.mac(request.getPassword()));
         if (user == null) {
             return null;
         }
-        return jwtService.getToken(user.getId());
+        return user.getId();
     }
 }

@@ -1,5 +1,6 @@
 package org.example.yourownex.controller;
 
+import jakarta.servlet.http.*;
 import lombok.*;
 import org.example.yourownex.dto.*;
 import org.example.yourownex.service.*;
@@ -23,11 +24,13 @@ public class SignController {
 
     @SneakyThrows
     @PostMapping("/in")
-    public ResponseEntity<Result<String>> signin(@RequestBody SigninRequest request) {
-        String token = userService.signin(request);
-        if (token == null) {
+    public ResponseEntity<Result<String>> signin(@RequestBody SigninRequest request, HttpServletRequest session) {
+        Long userId = userService.signin(request);
+        if (userId == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>(Result.success(token), HttpStatus.OK);
+        session.getSession(true).setAttribute("userId", userId);
+        return ResponseEntity.ok().build();
     }
+
 }
