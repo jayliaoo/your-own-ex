@@ -18,9 +18,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jooq</groupId>
-            <artifactId>jooq</artifactId>
-            <version>3.19.11</version>
+            <groupId>org.bitcoinj</groupId>
+            <artifactId>bitcoinj-core</artifactId>
+            <version>0.16.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jooq</artifactId>
         </dependency>
 
         <dependency>
@@ -30,10 +35,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -121,9 +122,6 @@
                     <generator>
                         <generate>
                             <fluentSetters>true</fluentSetters>
-                            <!--                            <daos>true</daos>-->
-                            <!--                            <springAnnotations>true</springAnnotations>-->
-                            <!--                            <springDao>true</springDao>-->
                         </generate>
                         <database>
                             <name>org.jooq.meta.mysql.MySQLDatabase</name>
