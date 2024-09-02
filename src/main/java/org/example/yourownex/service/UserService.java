@@ -27,6 +27,7 @@ public class UserService {
         Long userId = userDao.save(user);
 
         accountDao.save(new AccountRecord().setUserId(userId).setCurrency("USD"));
+        accountDao.save(new AccountRecord().setUserId(userId).setCurrency("BTC"));
         return userId;
     }
 

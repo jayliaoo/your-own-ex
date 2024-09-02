@@ -9,39 +9,53 @@ import org.bitcoinj.wallet.*;
 import org.springframework.stereotype.*;
 
 import java.io.*;
+import java.util.concurrent.*;
 
 @Service
 public class BitcoinService {
 
-    @SneakyThrows
-    public static void main(String[] args) {
-        NetworkParameters params = TestNet3Params.get();
+    private final Wallet wallet;
+    private final PeerGroup peerGroup;
 
-        Wallet wallet = Wallet.createDeterministic(params, Script.ScriptType.P2PKH);
+    @SneakyThrows
+    public BitcoinService() {
+        NetworkParameters params = TestNet3Params.get();
         File walletFile = new File("wallet-file");
-        wallet.saveToFile(walletFile);
+        if (walletFile.exists()) {
+            wallet = Wallet.loadFromFile(walletFile);
+        } else {
+            wallet = Wallet.createDeterministic(params, Script.ScriptType.P2WPKH);
+            wallet.saveToFile(walletFile);
+        }
+        wallet.addCoinsReceivedEventListener(Executors.newVirtualThreadPerTaskExecutor(),
+                (wallet, tx, prevBalance, newBalance) -> {
+                    for (TransactionOutput input : tx.getOutputs()) {
+
+                        Script scriptSig = input.getScriptPubKey();
+                    }
+                });
         Context.propagate(new Context(params));
 
         BlockStore blockStore = new SPVBlockStore(params, new File("spvblockchain.spvchain"));
         BlockChain chain = new BlockChain(params, wallet, blockStore);
-        PeerGroup peerGroup = new PeerGroup(params, chain);
-        peerGroup.addWallet(wallet);
+        peerGroup = new PeerGroup(params, chain);
 
         // Starts the connection to the Bitcoin network
         peerGroup.start();
         peerGroup.downloadBlockChain();
 
-        Address toAddress = Address.fromString(params, "YOUR_RECEIVING_ADDRESS");
-        Coin amount = Coin.parseCoin("0.0000001");
+        Thread.sleep(Long.MAX_VALUE);
+    }
+
+    @SneakyThrows
+    public void transfer(String address, String strAmount) {
+        Address toAddress = Address.fromString(TestNet3Params.get(), address);
+        Coin amount = Coin.parseCoin(strAmount);
 
         SendRequest req = SendRequest.to(toAddress, amount);
         req.feePerKb = Coin.parseCoin("0.00000001"); // Transaction fee per KB
-        try {
-            wallet.completeTx(req);
-            wallet.commitTx(req.tx);
-            peerGroup.broadcastTransaction(req.tx).broadcast().get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        wallet.completeTx(req);
+        wallet.commitTx(req.tx);
+        peerGroup.broadcastTransaction(req.tx).broadcast().get();
     }
 }

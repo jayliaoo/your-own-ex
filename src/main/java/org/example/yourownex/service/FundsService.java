@@ -23,7 +23,7 @@ public class FundsService {
     @Transactional
     public void deposit(DepositRequest request) {
         Long userId = SignInInterceptor.getUserId();
-        AccountRecord account = accountDao.findByUserIdAndCurrency(userId, "USD");
+        AccountRecord account = accountDao.findByUserIdAndCurrency(userId, request.getCurrency());
         Long accountId = account.getId();
         StatementRecord statement = new StatementRecord();
         statement.setAccountId(accountId);
@@ -36,7 +36,7 @@ public class FundsService {
     @Transactional
     public void withdraw(DepositRequest request) {
         Long userId = SignInInterceptor.getUserId();
-        AccountRecord account = accountDao.findByUserIdAndCurrency(userId, "USD");
+        AccountRecord account = accountDao.findByUserIdAndCurrency(userId, request.getCurrency());
         if (account.getBalance().compareTo(request.getAmount()) < 0) {
             throw new CustomException("Insufficient balance.");
         }
