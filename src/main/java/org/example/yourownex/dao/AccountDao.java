@@ -24,7 +24,7 @@ public class AccountDao {
     }
 
     public void save(AccountRecord entity) {
-        dslContext.insertInto(ACCOUNT).set(entity).execute();
+        dslContext.executeInsert(entity);
     }
 
     public void increase(Long id, BigDecimal amount) {

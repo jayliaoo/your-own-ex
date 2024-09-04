@@ -2,11 +2,9 @@ package org.example.yourownex.service;
 
 import org.example.yourownex.controller.CustomException;
 import org.example.yourownex.controller.SignInInterceptor;
-import org.example.yourownex.dao.AccountDao;
-import org.example.yourownex.dao.StatementDao;
+import org.example.yourownex.dao.*;
 import org.example.yourownex.dto.DepositRequest;
-import org.example.yourownex.jooq.tables.records.AccountRecord;
-import org.example.yourownex.jooq.tables.records.StatementRecord;
+import org.example.yourownex.jooq.tables.records.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +12,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class FundsService {
     private final AccountDao accountDao;
     private final StatementDao statementDao;
+    private final AddressDao addressDao;
+    private final BitcoinService bitcoinService;
 
-    public FundsService(AccountDao accountDao, StatementDao statementDao) {
+    public FundsService(
+            AccountDao accountDao, StatementDao statementDao, AddressDao addressDao,
+            BitcoinService bitcoinService
+    ) {
         this.accountDao = accountDao;
         this.statementDao = statementDao;
+        this.addressDao = addressDao;
+        this.bitcoinService = bitcoinService;
     }
 
     @Transactional
@@ -45,5 +50,23 @@ public class FundsService {
                 .setAmount(request.getAmount().negate())
                 .setType("WITHDRAW"));
         accountDao.decrease(accountId, request.getAmount());
+    }
+
+    public String depositPrepare(String currency) {
+        Long userId = SignInInterceptor.getUserId();
+        AddressRecord locked = addressDao.findLocked(currency, userId);
+        if (locked == null) {
+            int lock = addressDao.lock(currency, userId);
+            if (lock < 1) {
+                String s = bitcoinService.newAddress();
+                addressDao.insert(new AddressRecord().setCurrency(currency).setAddress(s));
+                return s;
+            } else {
+                return addressDao.findLocked(currency, userId).getAddress();
+            }
+        } else {
+            addressDao.extend(locked);
+            return locked.getAddress();
+        }
     }
 }

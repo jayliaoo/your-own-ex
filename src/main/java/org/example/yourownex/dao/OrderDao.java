@@ -20,7 +20,7 @@ public class OrderDao {
     }
 
     public void save(OrderRecord orderRecord) {
-        dslContext.insertInto(ORDER).set(orderRecord).execute();
+        dslContext.executeInsert(orderRecord);
     }
 
     public OrderRecord findBuyOrder() {

@@ -1,10 +1,8 @@
 package org.example.yourownex.dao;
 
-import org.example.yourownex.jooq.tables.records.StatementRecord;
-import org.jooq.DSLContext;
-import org.springframework.stereotype.Service;
-
-import static org.example.yourownex.jooq.tables.Statement.STATEMENT;
+import org.example.yourownex.jooq.tables.records.*;
+import org.jooq.*;
+import org.springframework.stereotype.*;
 
 
 @Service
@@ -16,6 +14,6 @@ public class StatementDao {
     }
 
     public void save(StatementRecord entity) {
-        dslContext.insertInto(STATEMENT).set(entity).execute();
+        dslContext.executeInsert(entity);
     }
 }

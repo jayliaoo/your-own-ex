@@ -18,7 +18,7 @@ public class FulfillmentDao {
     }
 
     public void save(FulfillmentRecord record) {
-        dslContext.insertInto(FULFILLMENT).set(record).execute();
+        dslContext.executeInsert(record);
     }
 
     public List<FulfillmentRecord> findToFulfill(int limit) {

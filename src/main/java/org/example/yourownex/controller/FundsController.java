@@ -20,6 +20,11 @@ public class FundsController {
         return Result.success();
     }
 
+    @RequestMapping("/deposit/prepare")
+    public Result<String> depositPrepare(String currency) {
+        return Result.success(fundsService.depositPrepare(currency));
+    }
+
     @PutMapping("/withdraw")
     @Transactional
     public Result<Void> withdraw(@RequestBody DepositRequest request) {
