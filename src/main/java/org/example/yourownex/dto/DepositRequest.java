@@ -8,4 +8,5 @@ import java.math.BigDecimal;
 public class DepositRequest {
     private String currency;
     private BigDecimal amount;
+    private String address;
 }

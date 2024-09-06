@@ -25,6 +25,7 @@ public class BitcoinService implements DisposableBean {
     private final AccountService accountService;
     private final AddressDao addressDao;
     private final TestNet3Params params;
+    private final Context context;
 
     @SneakyThrows
     public BitcoinService(AccountService accountService, AddressDao addressDao) {
@@ -41,7 +42,8 @@ public class BitcoinService implements DisposableBean {
         }
         wallet.addCoinsReceivedEventListener(Executors.newVirtualThreadPerTaskExecutor(),
                 (wallet, tx, prevBalance, newBalance) -> handleCoinsReceived(tx));
-        Context.propagate(new Context(params));
+        context = new Context(params);
+        Context.propagate(context);
 
         this.blockStore = new SPVBlockStore(params, new File("spvblockchain.spvchain"));
         BlockChain chain = new BlockChain(params, wallet, blockStore);
@@ -51,6 +53,7 @@ public class BitcoinService implements DisposableBean {
         // Starts the connection to the Bitcoin network
         peerGroup.start();
         peerGroup.startBlockChainDownload(new DownloadProgressTracker());
+        System.out.printf("Balance: %s\n", wallet.getBalance().toBtc());
 //        peerGroup.downloadBlockChain();
 //        System.out.println("done downloading block chain.");
     }
@@ -88,8 +91,9 @@ public class BitcoinService implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
-        wallet.saveToFile(new File("wallet-file"));
+        Context.propagate(context);
         peerGroup.stop();
+        wallet.saveToFile(new File("wallet-file"));
         blockStore.close();
     }
 }
