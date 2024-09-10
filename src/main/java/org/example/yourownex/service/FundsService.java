@@ -41,15 +41,24 @@ public class FundsService {
     @Transactional
     public void withdraw(DepositRequest request) {
         Long userId = SignInInterceptor.getUserId();
-        AccountRecord account = accountDao.findByUserIdAndCurrency(userId, request.getCurrency());
+        String currency = request.getCurrency();
+        AccountRecord account = accountDao.findByUserIdAndCurrency(userId, currency);
         if (account.getBalance().compareTo(request.getAmount()) < 0) {
             throw new CustomException("Insufficient balance.");
         }
         Long accountId = account.getId();
-        statementDao.save(new StatementRecord().setAccountId(accountId)
-                .setAmount(request.getAmount().negate())
-                .setType("WITHDRAW"));
-        accountDao.decrease(accountId, request.getAmount());
+        if (currency.equals("USD")) {
+            statementDao.save(new StatementRecord().setAccountId(accountId)
+                    .setAmount(request.getAmount().negate())
+                    .setType("WITHDRAW"));
+            accountDao.decrease(accountId, request.getAmount());
+        } else {//BTC
+            bitcoinService.transfer(request.getAddress(), request.getAmount());
+            statementDao.save(new StatementRecord().setAccountId(accountId)
+                    .setAmount(request.getAmount().negate())
+                    .setType("WITHDRAW"));
+            accountDao.decrease(accountId, request.getAmount());
+        }
     }
 
     public String depositPrepare(String currency) {

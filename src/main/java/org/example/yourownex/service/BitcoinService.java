@@ -14,6 +14,7 @@ import org.springframework.beans.factory.*;
 import org.springframework.stereotype.*;
 
 import java.io.*;
+import java.math.*;
 import java.util.concurrent.*;
 
 @Service
@@ -71,15 +72,23 @@ public class BitcoinService implements DisposableBean {
     }
 
     @SneakyThrows
-    public void transfer(String address, String strAmount) {
+    public void transfer(String address, BigDecimal amount) {
         Address toAddress = Address.fromString(TestNet3Params.get(), address);
-        Coin amount = Coin.parseCoin(strAmount);
-
-        SendRequest req = SendRequest.to(toAddress, amount);
+        long satoshis = Coin.btcToSatoshi(amount);
+        Coin coin = Coin.valueOf(satoshis);
+        SendRequest req = SendRequest.to(toAddress, coin);
         req.feePerKb = Coin.parseCoin("0.00000001"); // Transaction fee per KB
         wallet.completeTx(req);
         wallet.commitTx(req.tx);
         peerGroup.broadcastTransaction(req.tx).broadcast().get();
+
+        req.tx.getConfidence().addEventListener(Executors.newVirtualThreadPerTaskExecutor(),
+                (confidence, reason) -> {
+                    int depth = confidence.getDepthInBlocks();
+                    if (depth > 0) {
+
+                    }
+                });
     }
 
     @SneakyThrows
